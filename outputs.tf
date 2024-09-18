@@ -36,3 +36,60 @@ output "eip2_az2" {
     description = "If the NAT's Address in AZ2 is assigned PROPERLY." 
 }
 
+output "ssh_sg_id"{
+    value = aws_security_group.bastion_ssh.id
+    description = "Bastion SSH Security Group ID"
+}
+
+output "alb_sg_id"{
+    value = aws_security_group.load_balancer.id
+    description = "Load Balancer Security Group ID"
+}
+
+output "web_server_sg_id"{
+    value = aws_security_group.web_server.id
+    description = "Web Server Security Group ID"
+}
+
+output "db_migration_sg_id"{
+    value = aws_security_group.db_migration.id
+    description = "DB Migration (via Bastion) Security Group ID"
+}
+
+output "rds_sg_id"{
+    value = aws_security_group.rds_instance.id
+    description = "RDS instance Security Group ID"
+}
+
+output "rds_metadata" {
+    value = {
+        identifier = aws_db_instance.soo_rds_db.identifier,
+        arn =  aws_db_instance.soo_rds_db.arn}
+    description = "Check the implementation of RDS instance"
+}
+
+
+
+output "rds_endpoint" {
+    value = {
+        rds_identifier = aws_db_instance.soo_rds_db.identifier
+        rds_endpoint = aws_db_instance.soo_rds_db.endpoint
+    }
+    description = "RDS info for .env -> Data Migration"
+}
+
+output "domain_automation_ec2"{
+    value = {
+        private_dns = aws_instance.automation_ec2.private_dns
+        private_ip = aws_instance.automation_ec2.private_ip
+    }
+    description = "Private IP address of automtaion EC2 instance"
+}
+
+output "domain_lamp_web_ec2"{
+    value = {
+        private_dns = aws_instance.lamp_web_ec2.private_dns
+        private_ip = aws_instance.lamp_web_ec2.private_ip
+    }
+    description = "Private IP address of lamp_web EC2 instance"
+}
