@@ -64,7 +64,7 @@ variable "subnet_private_db2_cidr" {
 }
 
 variable "ssh_range" {
-    default = "192.168.56.0/24" 
+    default = "0.0.0.0/0" 
     type = string
 }
 
@@ -90,3 +90,46 @@ variable "rds_instance_class" {
 # db.txx series -> small scale // 
 # db.mxx        -> large scale , general case
 # rds info      -> secrets.tfvars
+
+
+variable "snapshot_db_identifier" {
+    default = "rdsdynamicwebappstaging"
+    description = "Retreive Snapshot to create RDS: reference to tfstate"
+    type = string
+}
+
+variable "log_bucket_tag" {
+    default = "soo-log-bucket"
+    description = "Log files Under dev/prod: Dynamic Web applicaiton"
+    type = string
+}
+
+variable "alb_tag" {
+    default = "soo-alb"
+    description = "ALB name in VPC[soo]"
+    type = string
+}
+
+
+variable "alb_acm_certificate"{
+    default = "arn:aws:acm:eu-west-3:381491959817:certificate/5e60387a-ae81-4e05-a253-bd8b8e8ef455"
+    description = "TLS/SSL Certificate for CNAME Record"
+    type = string
+}
+variable "my_domain" {
+    default = "mydogtomsky.com"
+    description = "apex domain name"
+    type = string
+}
+
+variable "ec2_template_tag" {
+    default = "web_ec2_template"
+    description = "value"
+    type = string  
+}
+
+variable "ec2_image_id" {
+    default = "ami-07ba09bac8573d1a5" # amazon linux 2023
+    description = "The template Image Id for auto-scaling group"
+    type = string
+}

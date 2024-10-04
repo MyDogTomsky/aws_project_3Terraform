@@ -2,8 +2,6 @@
 .history
 terraform.tfstate.backup
 
-secrets.tfvars
-scripts/.env
 
 abstraction_bak/
 log_tfstate/

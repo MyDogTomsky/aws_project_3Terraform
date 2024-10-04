@@ -1,7 +1,7 @@
 {
   "version": 4,
   "terraform_version": "1.9.2",
-  "serial": 515,
+  "serial": 504,
   "lineage": "7e847844-bfa4-c372-5147-f38d1938d4eb",
   "outputs": {
     "alb_metadata": {
@@ -65,14 +65,12 @@
     "asg_template_spec": {
       "value": {
         "template_id": "lt-065486b015f35a53f",
-        "template_image_id": "ami-07ba09bac8573d1a5",
         "template_meta": {}
       },
       "type": [
         "object",
         {
           "template_id": "string",
-          "template_image_id": "string",
           "template_meta": [
             "map",
             "string"
@@ -1256,14 +1254,14 @@
             "hibernation_options": [],
             "iam_instance_profile": [],
             "id": "lt-065486b015f35a53f",
-            "image_id": "ami-07ba09bac8573d1a5",
+            "image_id": "ami-09ec299e4bac84628",
             "instance_initiated_shutdown_behavior": "",
             "instance_market_options": [],
             "instance_requirements": [],
             "instance_type": "t2.micro",
             "kernel_id": "",
             "key_name": "soo_ssh_key",
-            "latest_version": 4,
+            "latest_version": 3,
             "license_specification": [],
             "maintenance_options": [],
             "metadata_options": [],
@@ -1731,10 +1729,10 @@
                 "core_network_arn": "",
                 "destination_prefix_list_id": "",
                 "egress_only_gateway_id": "",
-                "gateway_id": "nat-045d7bd5372a24247",
+                "gateway_id": "",
                 "ipv6_cidr_block": "",
                 "local_gateway_id": "",
-                "nat_gateway_id": "",
+                "nat_gateway_id": "nat-045d7bd5372a24247",
                 "network_interface_id": "",
                 "transit_gateway_id": "",
                 "vpc_endpoint_id": "",
@@ -1782,10 +1780,10 @@
                 "core_network_arn": "",
                 "destination_prefix_list_id": "",
                 "egress_only_gateway_id": "",
-                "gateway_id": "nat-07c612a0541ce5c6c",
+                "gateway_id": "",
                 "ipv6_cidr_block": "",
                 "local_gateway_id": "",
-                "nat_gateway_id": "",
+                "nat_gateway_id": "nat-07c612a0541ce5c6c",
                 "network_interface_id": "",
                 "transit_gateway_id": "",
                 "vpc_endpoint_id": "",

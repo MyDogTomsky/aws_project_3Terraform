@@ -42,18 +42,18 @@ sudo systemctl restart mariadb
 
 sudo sed -i '/<Directory "\/var\/www\/html">/,/<\Directory>/ s/AllowOverride None/AllowOverride All/' /etc/httpd/conf/httpd.conf
 
-source .env
-sudo aws s3 sync $S3_BUCKET_WEB_OBJ /var/www/html
+
 
 # Deploy Web files to Apache Server
 
+aws s3 sync s3://soo-dynamicweb-bucket /var/www/html
 cd /var/www/html
 sudo unzip shopwise.zip -d shopwise-temp
 sudo cp -R shopwise-temp/.  /var/www/html
 sudo rm-rf shopwise-temp shopwise.zip
 
-sudo find /var/www/html -type d -exec sudo chmod 2775 {}\;
-sudo find /var/www/html -type f -exec sudo chmod 0664 {}\;
+sudo find /var/www/html -type d -exec sudo chmod 2775 {} \;
+sudo find /var/www/html -type f -exec sudo chmod 0664 {} \;
 
 sudo vi .env
 # update app_url/app_env my domain name RDS -> CONFIGURATION

@@ -1,7 +1,7 @@
 {
   "version": 4,
   "terraform_version": "1.9.2",
-  "serial": 515,
+  "serial": 505,
   "lineage": "7e847844-bfa4-c372-5147-f38d1938d4eb",
   "outputs": {
     "alb_metadata": {
@@ -65,14 +65,12 @@
     "asg_template_spec": {
       "value": {
         "template_id": "lt-065486b015f35a53f",
-        "template_image_id": "ami-07ba09bac8573d1a5",
         "template_meta": {}
       },
       "type": [
         "object",
         {
           "template_id": "string",
-          "template_image_id": "string",
           "template_meta": [
             "map",
             "string"
@@ -1233,81 +1231,6 @@
     },
     {
       "mode": "managed",
-      "type": "aws_launch_template",
-      "name": "ec2_template",
-      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
-      "instances": [
-        {
-          "schema_version": 0,
-          "attributes": {
-            "arn": "arn:aws:ec2:eu-west-3:381491959817:launch-template/lt-065486b015f35a53f",
-            "block_device_mappings": [],
-            "capacity_reservation_specification": [],
-            "cpu_options": [],
-            "credit_specification": [],
-            "default_version": 1,
-            "description": "",
-            "disable_api_stop": false,
-            "disable_api_termination": false,
-            "ebs_optimized": "",
-            "elastic_gpu_specifications": [],
-            "elastic_inference_accelerator": [],
-            "enclave_options": [],
-            "hibernation_options": [],
-            "iam_instance_profile": [],
-            "id": "lt-065486b015f35a53f",
-            "image_id": "ami-07ba09bac8573d1a5",
-            "instance_initiated_shutdown_behavior": "",
-            "instance_market_options": [],
-            "instance_requirements": [],
-            "instance_type": "t2.micro",
-            "kernel_id": "",
-            "key_name": "soo_ssh_key",
-            "latest_version": 4,
-            "license_specification": [],
-            "maintenance_options": [],
-            "metadata_options": [],
-            "monitoring": [
-              {
-                "enabled": true
-              }
-            ],
-            "name": "staging_web_ec2_template",
-            "name_prefix": "",
-            "network_interfaces": [],
-            "placement": [],
-            "private_dns_name_options": [],
-            "ram_disk_id": "",
-            "security_group_names": [],
-            "tag_specifications": [
-              {
-                "resource_type": "instance",
-                "tags": {
-                  "Environment": "staging",
-                  "Name": "staging_web_ec2_template"
-                }
-              }
-            ],
-            "tags": {},
-            "tags_all": {},
-            "update_default_version": null,
-            "user_data": "",
-            "vpc_security_group_ids": [
-              "sg-0a729afe4f9021979"
-            ]
-          },
-          "sensitive_attributes": [],
-          "private": "bnVsbA==",
-          "dependencies": [
-            "aws_key_pair.soo_ssh_key",
-            "aws_security_group.web_server",
-            "aws_vpc.soo_vpc"
-          ]
-        }
-      ]
-    },
-    {
-      "mode": "managed",
       "type": "aws_lb",
       "name": "alb",
       "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
@@ -1731,10 +1654,10 @@
                 "core_network_arn": "",
                 "destination_prefix_list_id": "",
                 "egress_only_gateway_id": "",
-                "gateway_id": "nat-045d7bd5372a24247",
+                "gateway_id": "",
                 "ipv6_cidr_block": "",
                 "local_gateway_id": "",
-                "nat_gateway_id": "",
+                "nat_gateway_id": "nat-045d7bd5372a24247",
                 "network_interface_id": "",
                 "transit_gateway_id": "",
                 "vpc_endpoint_id": "",
@@ -1782,10 +1705,10 @@
                 "core_network_arn": "",
                 "destination_prefix_list_id": "",
                 "egress_only_gateway_id": "",
-                "gateway_id": "nat-07c612a0541ce5c6c",
+                "gateway_id": "",
                 "ipv6_cidr_block": "",
                 "local_gateway_id": "",
-                "nat_gateway_id": "",
+                "nat_gateway_id": "nat-07c612a0541ce5c6c",
                 "network_interface_id": "",
                 "transit_gateway_id": "",
                 "vpc_endpoint_id": "",

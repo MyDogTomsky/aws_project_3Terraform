@@ -42,7 +42,7 @@ def bucket_upload_obj(s3,db_file_path,static_web_zip_path,bucket_tag):
     work = "<< UPLOAD OBJ in BUCKET >>"
     try:
 
-        upload_objs = [{db_file_path:"shopwise_db.sql"}]
+        upload_objs = [{db_file_path:"V1__shopwise_db.sql"}]
         upload_objs.append({static_web_zip_path:"shopwise.zip"})
         for obj in upload_objs:
             for file,obj_key in obj.items():
@@ -62,7 +62,7 @@ def main():
     s3_resource = boto3.resource('s3')
     region_tag = 'eu-west-3'
     bucket_tag = "soo-dynamicweb-bucket"
-    db_file_path = os.path.join("static_web_files","shopwise_db.sql")
+    db_file_path = os.path.join("static_web_files","V1__shopwise_db.sql")
     static_web_zip_path = os.path.join("static_web_files","shopwise.zip")
 
 

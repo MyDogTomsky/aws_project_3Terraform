@@ -190,7 +190,7 @@ resource "aws_route_table_association" "rt_in_db2_subnet" {
 
 # 1 Complete Basic Network Configuration
 
-#1 Bastion SSH sg
+#1 Bastion SSH sg: Automation & DB migration
 resource "aws_security_group" "bastion_ssh" {
   name        = "soo_bastion_sg"
   description = "Allow SSH inbound traffic"
@@ -287,31 +287,7 @@ resource "aws_vpc_security_group_egress_rule" "webserver_outbound" {
   ip_protocol       = "-1" # semantically equivalent to all ports
 }
 
-#3 db_migration sg
-resource "aws_security_group" "db_migration" {
-  name        = "soo_db_mg_sg"
-  description = "Allow SSH inbound traffic to access exteranl S3 & RDS instance/"
-  vpc_id      = aws_vpc.soo_vpc.id
-
-  tags = {
-    Name = "soo_db_mg_sg"
-  }
-}
-resource "aws_vpc_security_group_ingress_rule" "allow_db_ssh" {
-  security_group_id = aws_security_group.db_migration.id
-  referenced_security_group_id  = aws_security_group.bastion_ssh.id
-  from_port         = 22
-  ip_protocol       = "tcp"
-  to_port           = 22
-}
-
-resource "aws_vpc_security_group_egress_rule" "dbmigration_outbound" {
-  security_group_id = aws_security_group.db_migration.id
-  cidr_ipv4         = var.all_traffic
-  ip_protocol       = "-1" # semantically equivalent to all ports
-}
-
-#5 RDS instance sg
+#4 RDS instance sg
 
 resource "aws_security_group" "rds_instance" {
   name        = "soo_rds_sg"
@@ -322,25 +298,16 @@ resource "aws_security_group" "rds_instance" {
   }
 }
 
-resource "aws_vpc_security_group_ingress_rule" "allow_ssh_rds" {
+resource "aws_vpc_security_group_ingress_rule" "allow_bastion_rds" {
   security_group_id = aws_security_group.rds_instance.id
 
   referenced_security_group_id   = aws_security_group.bastion_ssh.id
-  from_port   = 22
-  ip_protocol = "tcp"
-  to_port     = 22
-}
-
-resource "aws_vpc_security_group_ingress_rule" "allow_mysql_rds" {
-  security_group_id = aws_security_group.rds_instance.id
-
-  referenced_security_group_id   = aws_security_group.db_migration.id
   from_port   = 3306
   ip_protocol = "tcp"
   to_port     = 3306
 }
 
-resource "aws_vpc_security_group_ingress_rule" "allow_mysql_rds2" {
+resource "aws_vpc_security_group_ingress_rule" "allow_web_rds" {
   security_group_id = aws_security_group.rds_instance.id
 
   referenced_security_group_id   = aws_security_group.web_server.id
@@ -359,11 +326,16 @@ resource "aws_vpc_security_group_egress_rule" "rds_outbound" {
 # db subnet group -> db instance
 # db subnet group -> db snapshot -> db instance
 
+resource "aws_key_pair" "soo_ssh_key" {
+  key_name   = "soo_ssh_key"
+  public_key = file("C:\\Users\\mengu\\.ssh\\soo_ssh_key.pub")
+}
 resource "aws_instance" "automation_ec2" {
   ami           = data.aws_ami.instance_image_setup.id
   instance_type = var.ec2_instance_class
   vpc_security_group_ids = [aws_security_group.bastion_ssh.id]
   subnet_id = aws_subnet.subnet_public1.id
+  key_name  = aws_key_pair.soo_ssh_key.key_name
   tags = {
     Name = "automation_ec2"
   }
@@ -374,6 +346,7 @@ resource "aws_instance" "lamp_web_ec2" {
   instance_type = var.ec2_instance_class
   vpc_security_group_ids = [aws_security_group.web_server.id]
   subnet_id = aws_subnet.subnet_private_web1.id
+  key_name  = aws_key_pair.soo_ssh_key.key_name
   tags = {
     Name = "lamp_web_ec2"
   }
@@ -403,4 +376,181 @@ resource "aws_db_instance" "soo_rds_db" {
     Name = local.rds_identifier
     Environment = var.environment
   }
+}
+
+# 2 
+
+# Create log file bukcet // 
+# Create Target Group[with Health Check)] 
+#             -->  Attach to created ALB
+
+resource "aws_s3_bucket" "log_bucket" {
+  bucket = var.log_bucket_tag
+  tags = {
+    Name        = var.log_bucket_tag
+    Environment = var.environment
+  }
+}
+resource "aws_s3_bucket_policy" "log_bucket_policy" {
+  bucket = aws_s3_bucket.log_bucket.id
+  policy = data.aws_iam_policy_document.policy_configuration.json
+}
+
+
+resource "aws_lb_target_group" "alb_target_group" {
+  name     = "alb-target-group"     # using (-) like S3 Bucket
+  port     = 80
+  protocol = "HTTP"
+  vpc_id   = aws_vpc.soo_vpc.id
+
+  health_check {
+    enabled = true
+    interval = 30 
+    path = "/health"
+    port = "traffic-port"
+    protocol = "HTTP"
+    timeout = 5           
+    healthy_threshold = 3
+    unhealthy_threshold = 2
+    matcher = "200,301,302"
+  }
+}
+
+resource "aws_lb" "alb" {
+  name               = var.alb_tag
+  internal           = false
+  load_balancer_type = "application"
+  security_groups    = [aws_security_group.load_balancer.id]
+  subnets            = [aws_subnet.subnet_public1.id,aws_subnet.subnet_public2.id]
+
+  enable_deletion_protection = true
+
+  access_logs {
+    bucket  = aws_s3_bucket.log_bucket.id
+    prefix  = "soo-alb-state"
+    enabled = true
+  }
+
+  tags = {
+    Environment = var.environment
+    Name = var.alb_tag
+  }
+}
+
+resource "aws_lb_listener" "https_go_alb" {
+  load_balancer_arn = aws_lb.alb.arn
+  port              = "443"
+  protocol          = "HTTPS"
+  ssl_policy        = "ELBSecurityPolicy-2016-08"
+  certificate_arn   = var.alb_acm_certificate
+
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.alb_target_group.arn
+  }
+}
+
+resource "aws_lb_listener" "http_go_https" {
+  load_balancer_arn = aws_lb.alb.arn
+  port              = "80"
+  protocol          = "HTTP"
+  
+  default_action {
+    type             = "redirect"
+    
+    redirect {
+      status_code = "HTTP_301"
+      host        = "#{host}"
+      path        = "/#{path}"
+      port        = "443"
+      protocol    = "HTTPS"
+    }
+  }
+}
+
+# DNS <- With A-alias record to connect with ALB
+resource "aws_route53_record" "a_alias" {
+  zone_id = data.aws_route53_zone.domain_name.zone_id
+  name    = "www.${var.my_domain}"
+  type    = "A"
+
+  alias {
+    name                   = aws_lb.alb.dns_name
+    zone_id                = aws_lb.alb.zone_id
+    evaluate_target_health = true
+  }
+}
+
+# ASG preparation
+resource "aws_launch_template" "ec2_template" {
+
+  name = "${var.environment}_${var.ec2_template_tag}"
+  image_id = var.ec2_image_id
+  instance_type = "t2.micro"
+  key_name = aws_key_pair.soo_ssh_key.key_name
+  monitoring {      
+    enabled = true
+  }
+  vpc_security_group_ids = [aws_security_group.web_server.id]
+
+  tag_specifications {
+    resource_type = "instance"
+    tags = {
+      Name = "${var.environment}_${var.ec2_template_tag}"
+      Environment = var.environment
+    }
+  }
+/*
+
+**  block_device_mappings { # Storage specification
+    device_name = "/dev/sdf"
+
+    ebs {
+      volume_size = 20
+    }
+  }
+**  iam_instance_profile {
+    name = "test"     # How to assign IAM Role
+  }
+**  network_interfaces {  # Configure the certain Network range 
+    associate_public_ip_address = true
+  }
+**  user_data = filebase64("${path.module}/example.sh")
+# when the instance starts, 
+#           the 'user_data' is initialised for the purpose.
+*/
+}
+
+resource "aws_autoscaling_group" "soo_asg" {
+  vpc_zone_identifier = [aws_subnet.subnet_private_web1.id,aws_subnet.subnet_private_web2.id]  # availability_zone
+  desired_capacity   = 3
+  max_size           = 4
+  min_size           = 2
+
+  health_check_type = "ELB"     # ELB level >>> each EC2
+  name = "${var.environment}_soo_asg"
+  launch_template {
+    id      = aws_launch_template.ec2_template.id
+    version = "$Latest"
+  }
+
+  lifecycle {
+    ignore_changes = [target_group_arns]
+  }
+  tag {
+    key                 = "Name"
+    value               = "${var.environment}_soo_asg"
+    propagate_at_launch = true
+  }
+  tag {
+    key                 = "Environment"
+    value               = var.environment
+    propagate_at_launch = true
+  }
+}
+
+# Create a new ALB Target Group attachment
+resource "aws_autoscaling_attachment" "asg_to_tg" {
+  autoscaling_group_name = aws_autoscaling_group.soo_asg.id
+  lb_target_group_arn    = aws_lb_target_group.alb_target_group.arn
 }
